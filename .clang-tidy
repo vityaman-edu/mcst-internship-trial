@@ -1,0 +1,13 @@
+Checks: '*,\
+    -llvm-header-guard,\
+    -llvmlibc-callee-namespace,\
+    -llvmlibc-restrict-system-libc-headers,\
+    -llvmlibc-implementation-in-namespace,\
+    -altera-unroll-loops,\
+    -misc-no-recursion,\
+    -fuchsia-trailing-return'
+WarningsAsErrors: '*'
+HeaderFilterRegex: '^(?!catch2\/.*\.hpp)'
+AnalyzeTemporaryDtors: false
+FormatStyle: .clang-format
+UseColor: true

@@ -13,6 +13,12 @@ test: compile
 run: compile
 	(cd build; ./${ARTIFACT})
 
+format:
+	clang-format --dry-run --Werror src/* test/*
+
+tidy:
+	clang-tidy -p ./compile_commands.json test/*.cpp
+
 clean:
 	rm -rf build
 	rm -rf .cache
