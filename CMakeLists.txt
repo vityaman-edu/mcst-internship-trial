@@ -14,7 +14,7 @@ set(CXX_COMMON_FLAGS "-Wall -Wextra -Werror")
 set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -Weffc++ -Wsign-compare -Wshadow")
 set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -Wwrite-strings -Wpointer-arith")
 set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -Winit-self -Wconversion")
-set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -Wno-sign-conversion -Wundefined-inline")
+set(CXX_COMMON_FLAGS "${CXX_COMMON_FLAGS} -Wno-sign-conversion")
 set(CMAKE_CXX_FLAGS ${CXX_COMMON_FLAGS})
 
 set(PROJECT_ARTIFACT_APP ${PROJECT_NAME})
