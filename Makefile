@@ -1,7 +1,7 @@
 ARTIFACT=filehash
 
 configure:
-	export CXX=/usr/bin/clang++ && cmake -S . -B build
+	cmake -S . -B build
 
 compile: configure
 	cmake --build build
