@@ -59,14 +59,19 @@ auto GenerateFileInput(std::default_random_engine& random)
     -> std::pair<std::string, std::vector<std::uint32_t>> {
   auto [stream, block] = GenerateInMemoryInput(random);
 
+  const auto size = stream.str().size();
+
   std::string filepath = "test.txt";
-  std::ofstream file(filepath, std::ios_base::binary);
+  std::ofstream file(filepath);
   file.exceptions(std::ofstream::badbit | std::ofstream::failbit);
 
+  std::size_t index = 0;
   for (const auto part : block) {
     char buffer[4] = {0};                              // NOLINT
     *reinterpret_cast<std::uint32_t*>(&buffer) = part; // NOLINT
-    file.write(buffer, sizeof(buffer));                // NOLINT
+    for (std::size_t j = 0; index < size && j < 4; ++j, ++index) {
+      file << buffer[j]; // NOLINT
+    }
   }
 
   return std::make_pair(std::move(filepath), std::move(block));
