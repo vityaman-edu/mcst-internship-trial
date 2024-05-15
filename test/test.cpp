@@ -30,18 +30,13 @@ TEST_CASE("In-memory same as data_processor") {
   std::uniform_int_distribution<std::uint8_t> is_zero_dist{0, zero_freq};
 
   std::uniform_int_distribution<std::size_t> size_dist{
-      std::numeric_limits<std::size_t>::min(),
-      3 * BlockSizeElements,
+      0, 3 * BlockSizeElements
   };
 
   constexpr std::size_t rounds = 500;
   constexpr std::size_t batch = 5;
   for (std::size_t i = 0; i < rounds; ++i) {
     const auto size = size_dist(random);
-
-    if (i % batch == 0) {
-      WARN("Testing iteration " << i  << " with size " << size << "...");
-    }
 
     std::stringstream stream;
 
@@ -55,9 +50,18 @@ TEST_CASE("In-memory same as data_processor") {
       buffer[j] = byte; // NOLINT
     }
 
+    // FIXME: is this okay that, if p := process_block
+    // p(concat(a, b, c)) == p(a) then p(b) then p(c)?
     const auto expected = data_processor_t{}.process_block(block);
     const auto actual = Hash(stream);
     REQUIRE(expected == actual);
+
+    if (i % batch == 0) {
+      WARN(
+          "Testing iteration " << i << " with size " << size << " and hash "
+                               << actual << "..."
+      );
+    }
   }
 }
 
