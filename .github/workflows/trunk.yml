@@ -31,4 +31,4 @@ jobs:
 
       - name: Check codestyle
         working-directory: ${{github.workspace}}
-        run: clang-tidy -p ./compile_commands.json test/*.cpp
+        run: clang-tidy -p ./build/compile_commands.json test/*.cpp
