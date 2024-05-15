@@ -15,6 +15,7 @@ Diagnostics:
       fuchsia-default-arguments-calls,
       altera-unroll-loops,
       altera-id-dependent-backward-branch,
+      cppcoreguidelines-avoid-do-while,
     ]
 
 InlayHints:

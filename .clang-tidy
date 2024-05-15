@@ -7,7 +7,8 @@ Checks: '*,\
     -altera-id-dependent-backward-branch,\
     -misc-no-recursion,\
     -fuchsia-trailing-return,\
-    -fuchsia-default-arguments-calls'
+    -fuchsia-default-arguments-calls,\
+    -cppcoreguidelines-avoid-do-while'
 WarningsAsErrors: '*'
 HeaderFilterRegex: '^(?!catch2\/.*\.hpp)'
 AnalyzeTemporaryDtors: false
