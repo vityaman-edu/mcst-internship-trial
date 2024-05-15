@@ -15,7 +15,7 @@ namespace filehash::smart {
 auto Hash(const std::string& filepath) -> std::uint32_t {
   std::filesystem::path path{filepath};
 
-  std::ifstream file(path, std::ios::binary | std::ios::in);
+  std::ifstream file(path, std::ios::binary);
   if (!file.is_open()) {
     throw std::runtime_error("failed to open file '" + filepath + "'");
   }
