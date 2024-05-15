@@ -8,7 +8,7 @@ compile: configure
 	cp build/compile_commands.json compile_commands.json
 
 test: compile
-	(cd build; ctest)
+	./build/${ARTIFACT}-test
 
 run: compile
 	./build/${ARTIFACT}
