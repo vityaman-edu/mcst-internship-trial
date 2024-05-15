@@ -4,8 +4,10 @@ Checks: '*,\
     -llvmlibc-restrict-system-libc-headers,\
     -llvmlibc-implementation-in-namespace,\
     -altera-unroll-loops,\
+    -altera-id-dependent-backward-branch,\
     -misc-no-recursion,\
-    -fuchsia-trailing-return'
+    -fuchsia-trailing-return,\
+    -fuchsia-default-arguments-calls'
 WarningsAsErrors: '*'
 HeaderFilterRegex: '^(?!catch2\/.*\.hpp)'
 AnalyzeTemporaryDtors: false
