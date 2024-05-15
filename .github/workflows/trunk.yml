@@ -17,13 +17,17 @@ jobs:
         with:
           version: "16.0"
 
-      - name: Build
+      - name: Configure Release
         working-directory: ${{github.workspace}}
-        run: cmake -S . -B build && cmake --build build
+        run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release ..
 
-      - name: Unit Test
+      - name: Build Release
         working-directory: ${{github.workspace}}
-        run: ./build/filehash-test
+        run: cd build && make filehash-test
+
+      - name: Unit Test Release
+        working-directory: ${{github.workspace}}
+        run: cd build && filehash-test
 
       - name: Check formatting
         working-directory: ${{github.workspace}}
