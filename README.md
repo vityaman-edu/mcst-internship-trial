@@ -6,7 +6,15 @@ You can build it as a usual CMake project
 with
 
 ```bash
-(cmake -S . -B build && cmake --build build)
+mkdir build
+cd build
+cmake ..
+
+make filehash-test
+./filehash-test
+
+make filehash
+./filehash
 ```
 
 Expected artifact can be run with

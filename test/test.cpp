@@ -34,7 +34,7 @@ TEST_CASE("In-memory same as data_processor") {
       3 * BlockSizeElements,
   };
 
-  constexpr std::size_t rounds = 250;
+  constexpr std::size_t rounds = 500;
   constexpr std::size_t batch = 5;
   for (std::size_t i = 0; i < rounds; ++i) {
     const auto size = size_dist(random);
