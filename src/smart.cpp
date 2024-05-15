@@ -24,8 +24,24 @@ auto Hash(const std::string& filepath) -> std::uint32_t {
   return Hash(file);
 }
 
+auto ReadFull(std::istream& input, char* buffer, std::streamsize size)
+    -> std::size_t {
+  std::streamsize remaining = size;
+  while (remaining != 0) {
+    input.read(buffer + size - remaining, remaining); // NOLINT
+    const auto count = input.gcount();
+    if (count == 0) {
+      break;
+    }
+    remaining -= count;
+  }
+  return size - remaining;
+}
+
 auto Hash(std::istream& input) -> std::uint32_t {
-  constexpr static std::size_t BlockSizeElements = 0x100000;
+  constexpr std::size_t BlockSizeElements = 0x100000;
+  constexpr std::size_t BlockSizeBytes
+      = BlockSizeElements * sizeof(std::uint32_t);
 
   std::uint32_t hash = 0;
   data_processor_t processor;
@@ -33,9 +49,9 @@ auto Hash(std::istream& input) -> std::uint32_t {
   std::vector<std::uint32_t> block(BlockSizeElements + 2);
   while (!input.eof()) {
     auto* buffer = reinterpret_cast<char*>(block.data()); // NOLINT
-    input.read(buffer, BlockSizeElements * sizeof(std::uint32_t));
-    for (std::size_t i = 0; i < 8; ++i) {
-      buffer[input.gcount() + i] = 0; // NOLINT
+    const auto count = ReadFull(input, buffer, BlockSizeBytes);
+    for (std::size_t i = 0; i < 8; ++i) { // NOLINT
+      buffer[count + i] = 0;              // NOLINT
     }
 
     if (!input.eof() && (input.bad() || input.fail())) {
