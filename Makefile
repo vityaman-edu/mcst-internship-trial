@@ -11,7 +11,7 @@ test: compile
 	(cd build; ctest)
 
 run: compile
-	(cd build; ./${ARTIFACT})
+	./build/${ARTIFACT}
 
 format:
 	clang-format --dry-run --Werror src/* test/*
