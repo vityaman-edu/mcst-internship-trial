@@ -1,7 +1,7 @@
 #include <iomanip>
 #include <iostream>
 
-#include "smart.hpp"
+#include "app/smart.hpp"
 
 auto main(int /*argc*/, char* /*argv*/[]) -> int {
   constexpr auto width = 8;

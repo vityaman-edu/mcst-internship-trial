@@ -11,8 +11,6 @@
 
 namespace filehash::smart {
 
-auto Hash(std::istream& input) -> std::uint32_t;
-
 auto Hash(const std::string& filepath) -> std::uint32_t {
   std::filesystem::path path{filepath};
 
@@ -39,10 +37,6 @@ auto ReadFull(std::istream& input, char* buffer, std::streamsize size)
 }
 
 auto Hash(std::istream& input) -> std::uint32_t {
-  constexpr std::size_t BlockSizeElements = 0x100000;
-  constexpr std::size_t BlockSizeBytes
-      = BlockSizeElements * sizeof(std::uint32_t);
-
   std::uint32_t hash = 0;
   data_processor_t processor;
 
