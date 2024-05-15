@@ -16,7 +16,7 @@ namespace filehash::test {
 
 using filehash::smart::BlockSizeElements;
 
-auto GenerateInput(std::default_random_engine& random)
+auto GenerateInMemoryInput(std::default_random_engine& random)
     -> std::pair<std::stringstream, std::vector<std::uint32_t>> {
 
   constexpr std::size_t zero_freq = 10;
@@ -59,7 +59,7 @@ TEST_CASE("In-memory same as data_processor") {
   constexpr std::size_t rounds = 500;
   constexpr std::size_t batch = 5;
   for (std::size_t i = 0; i < rounds; ++i) {
-    auto [stream, block] = GenerateInput(random);
+    auto [stream, block] = GenerateInMemoryInput(random);
 
     // FIXME: is this okay that, if p := process_block
     // p(concat(a, b, c)) == p(a) then p(b) then p(c)?

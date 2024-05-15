@@ -1,12 +1,13 @@
-#include <iomanip>
+#include "app/app.hpp"
+
+#include <exception>
 #include <iostream>
 
-#include "app/smart.hpp"
-
-auto main(int /*argc*/, char* /*argv*/[]) -> int {
-  constexpr auto width = 8;
-  const auto* filepath = ".clangd";
-  std::cout << "0x" << std::hex << std::setfill('0') << std::setw(width)
-            << filehash::smart::Hash(filepath) << '\n';
+auto main(int argc, char* argv[]) -> int try {
+  const auto args = filehash::app::ParseArgs(argc, argv);
+  filehash::app::Main(args);
   return 0;
+} catch (const std::exception& exception) {
+  std::cerr << "error: " << exception.what() << '\n';
+  return 1;
 }
