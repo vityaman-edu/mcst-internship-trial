@@ -11,9 +11,7 @@
 
 namespace filehash::smart {
 
-constexpr static std::size_t BlockSizeElements = 0x100000;
-constexpr static std::size_t BlockSizeBytes
-    = BlockSizeElements * sizeof(std::int32_t);
+auto Hash(std::istream& input) -> std::uint32_t;
 
 auto Hash(const std::string& filepath) -> std::uint32_t {
   std::filesystem::path path{filepath};
@@ -23,19 +21,25 @@ auto Hash(const std::string& filepath) -> std::uint32_t {
     throw std::runtime_error("failed to open file '" + filepath + "'");
   }
 
+  return Hash(file);
+}
+
+auto Hash(std::istream& input) -> std::uint32_t {
+  constexpr static std::size_t BlockSizeElements = 0x100000;
+  constexpr static std::size_t BlockSizeBytes
+      = BlockSizeElements * sizeof(std::uint32_t);
+
   std::uint32_t hash = 0;
   data_processor_t processor;
 
   std::vector<std::uint32_t> block(BlockSizeElements);
-  while (!file.eof()) {
+  while (!input.eof()) {
     auto* buffer = reinterpret_cast<char*>(block.data()); // NOLINT
-    file.read(buffer, BlockSizeBytes);
-    block.resize(file.gcount());
+    input.read(buffer, BlockSizeBytes);
+    block.resize(input.gcount());
 
-    if (!file.eof() && (file.bad() || file.fail())) {
-      throw std::runtime_error(
-          "failed during readings file '" + filepath + "'"
-      );
+    if (!input.eof() && (input.bad() || input.fail())) {
+      throw std::runtime_error("failed during readings input");
     }
 
     hash = processor.process_block(block);
