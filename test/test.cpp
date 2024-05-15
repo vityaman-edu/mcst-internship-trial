@@ -1,10 +1,16 @@
+#include "app/core.hpp"
 #include "app/process.hpp"
+#include "app/silly.hpp"
 #include "app/smart.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
+#include <fstream>
+#include <ios>
+#include <iostream>
 #include <limits>
 #include <ostream>
 #include <random>
@@ -14,16 +20,16 @@
 
 namespace filehash::test {
 
-using filehash::smart::BlockSizeElements;
+using filehash::BlockSizeElements;
 
 auto GenerateInMemoryInput(std::default_random_engine& random)
     -> std::pair<std::stringstream, std::vector<std::uint32_t>> {
 
   constexpr std::size_t zero_freq = 10;
 
-  static std::uniform_int_distribution<std::uint8_t> byte_dist{
-      std::numeric_limits<std::uint8_t>::min(),
-      std::numeric_limits<std::uint8_t>::max(),
+  static std::uniform_int_distribution<char> byte_dist{
+      std::numeric_limits<char>::min(),
+      std::numeric_limits<char>::max(),
   };
 
   static std::uniform_int_distribution<std::uint8_t> is_zero_dist{0, zero_freq};
@@ -41,7 +47,7 @@ auto GenerateInMemoryInput(std::default_random_engine& random)
 
   for (std::size_t j = 0; j < size; ++j) {
     const bool is_zero = is_zero_dist(random) > 0;
-    const std::uint8_t byte = is_zero ? 0 : byte_dist(random);
+    const char byte = is_zero ? '\0' : byte_dist(random);
     stream << byte;
     buffer[j] = byte; // NOLINT
   }
@@ -49,11 +55,25 @@ auto GenerateInMemoryInput(std::default_random_engine& random)
   return std::make_pair(std::move(stream), std::move(block));
 }
 
-TEST_CASE("In-memory same as data_processor") {
-  using filehash::smart::Hash;
+auto GenerateFileInput(std::default_random_engine& random)
+    -> std::pair<std::string, std::vector<std::uint32_t>> {
+  auto [stream, block] = GenerateInMemoryInput(random);
 
+  std::string filepath = "test.txt";
+  std::ofstream file(filepath, std::ios_base::binary);
+  file.exceptions(std::ofstream::badbit | std::ofstream::failbit);
+
+  for (const auto part : block) {
+    char buffer[4] = {0};                              // NOLINT
+    *reinterpret_cast<std::uint32_t*>(&buffer) = part; // NOLINT
+    file.write(buffer, sizeof(buffer));                // NOLINT
+  }
+
+  return std::make_pair(std::move(filepath), std::move(block));
+}
+
+TEST_CASE("In-memory") {
   constexpr std::size_t seed = 1232142132;
-
   std::default_random_engine random{seed}; // NOLINT
 
   constexpr std::size_t rounds = 500;
@@ -64,13 +84,41 @@ TEST_CASE("In-memory same as data_processor") {
     // FIXME: is this okay that, if p := process_block
     // p(concat(a, b, c)) == p(a) then p(b) then p(c)?
     const auto expected = data_processor_t{}.process_block(block);
-    const auto actual = Hash(stream);
+    const auto actual = filehash::smart::Hash(stream);
     REQUIRE(expected == actual);
 
     if (i % batch == 0) {
       WARN(
           "Testing iteration " << i << " with size " << block.size()
                                << " and hash " << actual << "..."
+      );
+    }
+  }
+}
+
+TEST_CASE("Out-memory") {
+  constexpr std::size_t seed = 1232142132;
+  std::default_random_engine random{seed}; // NOLINT
+
+  constexpr std::size_t rounds = 250;
+  constexpr std::size_t batch = 5;
+  for (std::size_t i = 0; i < rounds; ++i) {
+    auto [filepath, block] = GenerateFileInput(random);
+
+    const auto expected = data_processor_t{}.process_block(block);
+    const auto silly = filehash::silly::Hash(filepath);
+    const auto smart = filehash::smart::Hash(filepath);
+
+    REQUIRE(smart == silly);
+    REQUIRE(expected == silly);
+    REQUIRE(expected == smart);
+
+    std::filesystem::remove(filepath.c_str());
+
+    if (i % batch == 0) {
+      WARN(
+          "Testing iteration " << i << " with size " << block.size()
+                               << " and hash " << silly << "..."
       );
     }
   }
