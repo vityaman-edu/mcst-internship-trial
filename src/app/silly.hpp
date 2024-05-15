@@ -3,10 +3,8 @@
 #include <cstdint>
 #include <string>
 
-namespace filehash::smart {
+namespace filehash::silly {
 
 auto Hash(const std::string& filepath) -> std::uint32_t;
 
-auto Hash(std::istream& input) -> std::uint32_t;
-
-} // namespace filehash::smart
+} // namespace filehash::silly

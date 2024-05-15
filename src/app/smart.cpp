@@ -1,4 +1,5 @@
 #include "smart.hpp"
+#include "core.hpp"
 #include "process.hpp"
 
 #include <cstddef>

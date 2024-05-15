@@ -1,5 +1,5 @@
 #include "app.hpp"
-#include "smart.hpp"
+#include "silly.hpp"
 
 #include <iomanip>
 #include <iostream>
@@ -24,7 +24,7 @@ auto Main(const std::vector<std::string>& args) -> void {
   }
 
   const auto& filepath = args[0];
-  const auto hash = filehash::smart::Hash(filepath);
+  const auto hash = filehash::silly::Hash(filepath);
   std::cout << "0x" << std::hex << std::setfill('0') << std::setw(width) //
             << hash << '\n';
 }
