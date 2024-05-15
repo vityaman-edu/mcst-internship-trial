@@ -10,8 +10,25 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Build
-      working-directory: ${{github.workspace}}
-      run: cmake -S . -B build && cmake --build build
+      - name: Setup LLVM toolchain
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "16.0"
+
+      - name: Build
+        working-directory: ${{github.workspace}}
+        run: cmake -S . -B build && cmake --build build
+
+      - name: Unit Test
+        working-directory: ${{github.workspace}}
+        run: ./build/filehash-test
+
+      - name: Check formatting
+        working-directory: ${{github.workspace}}
+        run: clang-format --dry-run --Werror src/* test/*
+
+      - name: Check codestyle
+        working-directory: ${{github.workspace}}
+        run: clang-tidy -p ./compile_commands.json test/*.cpp

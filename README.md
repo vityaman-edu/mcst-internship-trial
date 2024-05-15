@@ -11,3 +11,9 @@ with
 
 For a developement consider using provided 
 `Makefile`, as it automates some routine tasks.
+
+Expected artifact can be run with
+
+```bash
+./build/filehash
+```
