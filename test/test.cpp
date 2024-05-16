@@ -146,7 +146,7 @@ TEST_CASE("Out-memory") {
   }
 }
 
-TEST_CASE("Fork-bomb") {
+TEST_CASE("Fork-join") {
   constexpr std::size_t seed = 1232142132;
   std::default_random_engine random{seed}; // NOLINT
 
