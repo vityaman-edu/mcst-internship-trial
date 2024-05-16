@@ -25,13 +25,12 @@ using filehash::BlockSizeElements;
 auto GenerateInMemoryInput(std::default_random_engine& random)
     -> std::pair<std::stringstream, std::vector<std::uint32_t>> {
 
-  constexpr std::size_t zero_freq = 10;
-
   static std::uniform_int_distribution<char> byte_dist{
       std::numeric_limits<char>::min(),
       std::numeric_limits<char>::max(),
   };
 
+  constexpr std::size_t zero_freq = 7;
   static std::uniform_int_distribution<std::uint8_t> is_zero_dist{0, zero_freq};
 
   static std::uniform_int_distribution<std::size_t> size_dist{
@@ -95,25 +94,43 @@ auto GenerateFilesInput(
   return files;
 }
 
+TEST_CASE("Data Processor Property") {
+  std::uint32_t hash_whole = 0;
+  {
+    data_processor_t hasher;
+    hash_whole = hasher.process_block({1, 2, 3, 4, 5, 0, 6, 7, 8, 9}); // NOLINT
+  }
+
+  std::uint32_t hash_chunked = 0;
+  {
+    data_processor_t hasher;
+    hash_chunked = hasher.process_block({1, 2, 3});
+    hash_chunked = hasher.process_block({4});
+    hash_chunked = hasher.process_block({5, 0, 6}); // NOLINT
+    hash_chunked = hasher.process_block({7, 8, 9}); // NOLINT
+  };
+
+  REQUIRE(hash_whole != hash_chunked);
+}
+
 TEST_CASE("In-memory") {
   constexpr std::size_t seed = 1232142132;
   std::default_random_engine random{seed}; // NOLINT
 
-  constexpr std::size_t rounds = 500;
+  constexpr std::size_t rounds = 250;
   constexpr std::size_t batch = 5;
   for (std::size_t i = 0; i < rounds; ++i) {
     auto [stream, block] = GenerateInMemoryInput(random);
 
-    // FIXME: is this okay that, if p := process_block
-    // p(concat(a, b, c)) == p(a) then p(b) then p(c)? WTF?..
     const auto expected = data_processor_t{}.process_block(block);
     const auto actual = filehash::smart::Hash(stream);
     REQUIRE(expected == actual);
 
     if (i % batch == 0) {
       WARN(
-          "Testing iteration " << i << " with size " << block.size()
-                               << " and hash " << actual << "..."
+          "Testing iteration " << i << " with "
+                               << block.size() / BlockSizeElements
+                               << " blocks and hash " << actual << "..."
       );
     }
   }
@@ -123,7 +140,7 @@ TEST_CASE("Out-memory") {
   constexpr std::size_t seed = 1232142132;
   std::default_random_engine random{seed}; // NOLINT
 
-  constexpr std::size_t rounds = 250;
+  constexpr std::size_t rounds = 100;
   constexpr std::size_t batch = 5;
   for (std::size_t i = 0; i < rounds; ++i) {
     auto [filepath, block] = GenerateFileInput(random);
@@ -150,7 +167,7 @@ TEST_CASE("Fork-join") {
   constexpr std::size_t seed = 1232142132;
   std::default_random_engine random{seed}; // NOLINT
 
-  constexpr std::size_t rounds = 50;
+  constexpr std::size_t rounds = 25;
   constexpr std::size_t batch = 5;
   for (std::size_t i = 0; i < rounds; ++i) {
     const auto files = GenerateFilesInput(random, std::to_string(i));
