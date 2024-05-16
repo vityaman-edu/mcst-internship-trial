@@ -1,4 +1,5 @@
 #include "app/core.hpp"
+#include "app/defer.hpp"
 #include "app/process.hpp"
 #include "app/silly.hpp"
 #include "app/smart.hpp"
@@ -9,12 +10,11 @@
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
-#include <ios>
-#include <iostream>
 #include <limits>
 #include <ostream>
 #include <random>
 #include <sstream>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -55,13 +55,14 @@ auto GenerateInMemoryInput(std::default_random_engine& random)
   return std::make_pair(std::move(stream), std::move(block));
 }
 
-auto GenerateFileInput(std::default_random_engine& random)
-    -> std::pair<std::string, std::vector<std::uint32_t>> {
+auto GenerateFileInput(
+    std::default_random_engine& random,
+    const std::string& filepath = "text.txt" // NOLINT
+) -> std::pair<std::string, std::vector<std::uint32_t>> {
   auto [stream, block] = GenerateInMemoryInput(random);
 
   const auto size = stream.str().size();
 
-  std::string filepath = "test.txt";
   std::ofstream file(filepath);
   file.exceptions(std::ofstream::badbit | std::ofstream::failbit);
 
@@ -74,7 +75,24 @@ auto GenerateFileInput(std::default_random_engine& random)
     }
   }
 
-  return std::make_pair(std::move(filepath), std::move(block));
+  return std::make_pair(filepath, std::move(block));
+}
+
+auto GenerateFilesInput(
+    std::default_random_engine& random, const std::string& tag
+) -> std::vector<std::string> {
+  constexpr std::uint8_t MaxFiles = 16;
+
+  std::uniform_int_distribution<std::uint8_t> count_dist{0, MaxFiles};
+
+  const auto count = count_dist(random);
+  std::vector<std::string> files;
+  for (std::size_t i = 0; i < count; ++i) {
+    auto [file, block]
+        = GenerateFileInput(random, tag + "-" + std::to_string(i));
+    files.emplace_back(std::move(file));
+  }
+  return files;
 }
 
 TEST_CASE("In-memory") {
@@ -87,7 +105,7 @@ TEST_CASE("In-memory") {
     auto [stream, block] = GenerateInMemoryInput(random);
 
     // FIXME: is this okay that, if p := process_block
-    // p(concat(a, b, c)) == p(a) then p(b) then p(c)?
+    // p(concat(a, b, c)) == p(a) then p(b) then p(c)? WTF?..
     const auto expected = data_processor_t{}.process_block(block);
     const auto actual = filehash::smart::Hash(stream);
     REQUIRE(expected == actual);
@@ -109,6 +127,7 @@ TEST_CASE("Out-memory") {
   constexpr std::size_t batch = 5;
   for (std::size_t i = 0; i < rounds; ++i) {
     auto [filepath, block] = GenerateFileInput(random);
+    Defer defer([file = filepath] { std::filesystem::remove(file.c_str()); });
 
     const auto expected = data_processor_t{}.process_block(block);
     const auto silly = filehash::silly::Hash(filepath);
@@ -118,13 +137,36 @@ TEST_CASE("Out-memory") {
     REQUIRE(expected == silly);
     REQUIRE(expected == smart);
 
-    std::filesystem::remove(filepath.c_str());
-
     if (i % batch == 0) {
       WARN(
           "Testing iteration " << i << " with size " << block.size()
                                << " and hash " << silly << "..."
       );
+    }
+  }
+}
+
+TEST_CASE("Fork-bomb") {
+  constexpr std::size_t seed = 1232142132;
+  std::default_random_engine random{seed}; // NOLINT
+
+  constexpr std::size_t rounds = 50;
+  constexpr std::size_t batch = 5;
+  for (std::size_t i = 0; i < rounds; ++i) {
+    const auto files = GenerateFilesInput(random, std::to_string(i));
+    Defer removal([&] {
+      for (const auto& file : files) {
+        std::filesystem::remove(file.c_str());
+      }
+    });
+
+    const auto seq = silly::HashSeq(files);
+    const auto par = silly::HashPar(files);
+
+    REQUIRE(seq == par);
+
+    if (i % batch == 0) {
+      WARN("Testing iteration " << i << " with count " << files.size());
     }
   }
 }
