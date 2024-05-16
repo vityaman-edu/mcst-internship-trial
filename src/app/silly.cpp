@@ -93,6 +93,10 @@ auto HashPar(const std::vector<std::string>& files) -> std::uint32_t {
     return 0;
   }
 
+  if (files.size() == 1) {
+    return Hash(files[0]);
+  }
+
   const auto shared_memory_size_bytes = sizeof(Result) * files.size();
 
   auto* results = static_cast<Result*>(mmap(

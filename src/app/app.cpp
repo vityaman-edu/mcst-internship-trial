@@ -17,14 +17,12 @@ auto ParseArgs(int argc, char* argv[]) -> std::vector<std::string> { // NOLINT
 }
 
 auto Main(const std::vector<std::string>& args) -> void {
-  constexpr auto width = 8;
-
-  if (args.size() != 1) {
-    throw std::invalid_argument("usage: filehash <filepath>");
+  if (args.empty()) {
+    throw std::invalid_argument("usage: filehash (filepath)+");
   }
 
-  const auto& filepath = args[0];
-  const auto hash = filehash::silly::Hash(filepath);
+  constexpr auto width = 8;
+  const auto hash = filehash::silly::HashPar(args);
   std::cout << "0x" << std::hex << std::setfill('0') << std::setw(width) //
             << hash << '\n';
 }
