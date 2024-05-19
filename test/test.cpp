@@ -6,8 +6,7 @@
 #include "app/silly.hpp"
 #include "app/smart.hpp"
 
-#include <catch2/catch_message.hpp>
-#include <catch2/catch_test_macros.hpp>
+#include <gtest/gtest.h>
 
 #include <algorithm>
 #include <cstddef>
@@ -109,7 +108,7 @@ auto GenerateInputFiles(
   return paths;
 }
 
-TEST_CASE("Data Processor Property") { // NOLINT
+TEST(DataProcessor, Property) {
   const auto hash_whole = [] {
     data_processor_t hasher;
     std::uint32_t hash = 0;
@@ -127,19 +126,19 @@ TEST_CASE("Data Processor Property") { // NOLINT
     return hash;
   }();
 
-  REQUIRE(hash_whole != hash_chunked);
+  ASSERT_NE(hash_whole, hash_chunked);
 }
 
-TEST_CASE("DivCeil") { // NOLINT
-  REQUIRE(DivCeil(0, 4) == 0);
-  REQUIRE(DivCeil(1, 4) == 1);
-  REQUIRE(DivCeil(2, 4) == 1);
-  REQUIRE(DivCeil(4, 4) == 1);
-  REQUIRE(DivCeil(5, 4) == 2);
-  REQUIRE(DivCeil(8, 4) == 2);
+TEST(DivCeil, Correctness) {
+  ASSERT_EQ(DivCeil(0, 4), 0);
+  ASSERT_EQ(DivCeil(1, 4), 1);
+  ASSERT_EQ(DivCeil(2, 4), 1);
+  ASSERT_EQ(DivCeil(4, 4), 1);
+  ASSERT_EQ(DivCeil(5, 4), 2);
+  ASSERT_EQ(DivCeil(8, 4), 2);
 }
 
-TEST_CASE("Block Splitting") { // NOLINT
+TEST(FileHash, BlockSplitting) {
   constexpr std::size_t seed = 1'232'142'132;
   constexpr std::size_t rounds = 250;
   constexpr auto filepath = "/tmp/test";
@@ -165,6 +164,7 @@ TEST_CASE("Block Splitting") { // NOLINT
       const auto content = GenerateFileContent(random, config);
 
       Write(content, filepath);
+      const Defer remove([&] { std::filesystem::remove(filepath); });
 
       const auto block_size = block_size_dist(random);
 
@@ -172,15 +172,13 @@ TEST_CASE("Block Splitting") { // NOLINT
       const auto silly = filehash::silly::Hash(filepath, block_size);
       const auto smart = filehash::smart::Hash(filepath, block_size);
 
-      REQUIRE(expected == smart);
-      REQUIRE(expected == silly);
+      ASSERT_EQ(expected, smart);
+      ASSERT_EQ(expected, silly);
     }
-
-    std::filesystem::remove(filepath);
   }
 }
 
-TEST_CASE("Application") { // NOLINT
+TEST(FileHash, Application) {
   constexpr std::size_t seed = 1'232'142'132;
   constexpr std::size_t rounds = 64;
   constexpr auto prefix = "/tmp/test";
@@ -235,13 +233,13 @@ TEST_CASE("Application") { // NOLINT
         .paths = paths,
     });
 
-    REQUIRE(silly_seq == silly_par);
-    REQUIRE(silly_seq == smart_seq);
-    REQUIRE(silly_par == smart_par);
+    ASSERT_EQ(silly_seq, silly_par);
+    ASSERT_EQ(silly_seq, smart_seq);
+    ASSERT_EQ(silly_par, smart_par);
   }
 }
 
-TEST_CASE("Large file") { // NOLINT
+TEST(FileHash, LargeFile) {
   constexpr std::size_t seed = 1'232'142'132;
   constexpr std::size_t rounds = 10;
   constexpr auto filepath = "/tmp/test";
@@ -260,6 +258,7 @@ TEST_CASE("Large file") { // NOLINT
     for (std::size_t i = 0; i < rounds; ++i) {
       const auto content = GenerateFileContent(random, config);
       Write(content, filepath);
+      const Defer remove([&] { std::filesystem::remove(filepath); });
 
       const auto expected = ExpectedHash(content, block_size);
       const auto actual = app::FileHash({
@@ -269,10 +268,8 @@ TEST_CASE("Large file") { // NOLINT
           .paths = {filepath},
       });
 
-      REQUIRE(expected == actual);
+      ASSERT_EQ(expected, actual);
     }
-
-    std::filesystem::remove(filepath);
   }
 }
 
