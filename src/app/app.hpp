@@ -1,12 +1,23 @@
 #pragma once
 
+#include "core.hpp"
+
 #include <string>
 #include <vector>
 
 namespace filehash::app {
 
-auto ParseArgs(int argc, char* argv[]) -> std::vector<std::string>; // NOLINT
+struct AppConfig {
+  enum class Method { SILLY, SMART };
 
-auto Main(const std::vector<std::string>& args) -> void;
+  Method method;
+  std::vector<std::string> files;
+
+  static auto Parse(int argc, char** argv) -> AppConfig;
+};
+
+auto FileHash(const AppConfig& config) -> HashCode;
+
+auto Main(int argc, char** argv) -> int;
 
 } // namespace filehash::app

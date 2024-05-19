@@ -6,10 +6,13 @@ Checks: '*,\
     -llvmlibc-inline-function-decl,\
     -altera-unroll-loops,\
     -altera-id-dependent-backward-branch,\
+    -altera-struct-pack-align,\
     -misc-no-recursion,\
     -fuchsia-trailing-return,\
     -fuchsia-default-arguments-calls,\
-    -cppcoreguidelines-avoid-do-while'
+    -cppcoreguidelines-avoid-do-while,\
+    -hicpp-avoid-c-arrays'
+    
 WarningsAsErrors: '*'
 HeaderFilterRegex: '^(?!catch2\/.*\.hpp)'
 AnalyzeTemporaryDtors: false
