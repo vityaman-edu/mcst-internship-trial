@@ -13,6 +13,7 @@ Diagnostics:
         llvmlibc-restrict-system-libc-headers,
         llvmlibc-inline-function-decl,
         misc-no-recursion,
+        misc-use-anonymous-namespace,
         fuchsia-trailing-return,
         fuchsia-default-arguments-calls,
         altera-unroll-loops,
@@ -20,8 +21,10 @@ Diagnostics:
         altera-struct-pack-align,
         cppcoreguidelines-avoid-do-while,
         cppcoreguidelines-pro-bounds-pointer-arithmetic,
+        cppcoreguidelines-avoid-magic-numbers,
         hicpp-avoid-c-arrays,
         concurrency-mt-unsafe,
+        readability-magic-numbers,
       ]
 
 InlayHints:
