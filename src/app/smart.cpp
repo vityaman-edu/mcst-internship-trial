@@ -2,6 +2,7 @@
 #include "core.hpp"
 #include "process.hpp"
 
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
@@ -38,15 +39,28 @@ auto ReadFull(std::istream& input, char* buffer, std::streamsize size)
 }
 
 auto Hash(std::istream& input) -> std::uint32_t {
+  return Hash(input, BlockSizeElements);
+}
+
+auto Hash(std::istream& input, std::uint32_t block_size) -> std::uint32_t {
+  assert(block_size > 4);
+
   std::uint32_t hash = 0;
   data_processor_t processor;
 
-  std::vector<std::uint32_t> block(BlockSizeElements + 2);
+  std::vector<std::uint32_t> block(block_size);
   while (!input.eof()) {
     auto* buffer = reinterpret_cast<char*>(block.data()); // NOLINT
-    const auto count = ReadFull(input, buffer, BlockSizeBytes);
-    for (std::size_t i = 0; i < 8; ++i) { // NOLINT
-      buffer[count + i] = 0;              // NOLINT
+    const auto count
+        = ReadFull(input, buffer, block_size * sizeof(std::uint32_t));
+    if (count != block_size * sizeof(std::uint32_t)) {
+      for (std::size_t j = count; j < block_size * sizeof(std::uint32_t); ++j) {
+        buffer[j] = 0;
+      }
+      block.resize(
+          count / sizeof(std::uint32_t)
+          + (count % sizeof(std::uint32_t) == 0 ? 0 : 1)
+      );
     }
 
     if (!input.eof() && (input.bad() || input.fail())) {
