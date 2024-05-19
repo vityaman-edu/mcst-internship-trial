@@ -1,6 +1,7 @@
 #pragma once
 
 #include <utility>
+
 namespace filehash {
 
 template <class Action>

@@ -21,6 +21,7 @@ Diagnostics:
         cppcoreguidelines-avoid-do-while,
         cppcoreguidelines-pro-bounds-pointer-arithmetic,
         hicpp-avoid-c-arrays,
+        concurrency-mt-unsafe,
       ]
 
 InlayHints:

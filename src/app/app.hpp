@@ -2,16 +2,19 @@
 
 #include "core.hpp"
 
-#include <string>
+#include <cstddef>
 #include <vector>
 
 namespace filehash::app {
 
 struct AppConfig {
   enum class Method { SILLY, SMART };
+  enum class ExecutionPolicy { SEQUENTIAL, CONCURRENT };
 
   Method method;
-  std::vector<std::string> files;
+  ExecutionPolicy policy;
+  std::size_t block_size_elements;
+  std::vector<Path> paths;
 
   static auto Parse(int argc, char** argv) -> AppConfig;
 };

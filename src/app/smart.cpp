@@ -2,27 +2,14 @@
 #include "core.hpp"
 #include "process.hpp"
 
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <filesystem>
 #include <fstream>
 #include <ios>
 #include <stdexcept>
 #include <vector>
 
 namespace filehash::smart {
-
-auto Hash(const std::string& filepath) -> std::uint32_t {
-  std::filesystem::path path{filepath};
-
-  std::ifstream file(path, std::ios::binary);
-  if (!file.is_open()) {
-    throw std::runtime_error("failed to open file '" + filepath + "'");
-  }
-
-  return Hash(file);
-}
 
 auto ReadFull(std::istream& input, char* buffer, std::streamsize size)
     -> std::size_t {
@@ -38,12 +25,13 @@ auto ReadFull(std::istream& input, char* buffer, std::streamsize size)
   return size - remaining;
 }
 
-auto Hash(std::istream& input) -> std::uint32_t {
-  return Hash(input, BlockSizeElements);
-}
+auto Hash(std::istream& input, std::size_t block_size) -> HashCode {
+  if (block_size == 0) {
+    throw std::invalid_argument("block size must be positive");
+  }
 
-auto Hash(std::istream& input, std::uint32_t block_size) -> std::uint32_t {
-  assert(block_size > 4);
+  const std::size_t block_size_bytes = block_size * sizeof(std::uint32_t);
+  const auto block_ssize_bytes = static_cast<std::streamsize>(block_size_bytes);
 
   std::uint32_t hash = 0;
   data_processor_t processor;
@@ -51,10 +39,9 @@ auto Hash(std::istream& input, std::uint32_t block_size) -> std::uint32_t {
   std::vector<std::uint32_t> block(block_size);
   while (!input.eof()) {
     auto* buffer = reinterpret_cast<char*>(block.data()); // NOLINT
-    const auto count
-        = ReadFull(input, buffer, block_size * sizeof(std::uint32_t));
-    if (count != block_size * sizeof(std::uint32_t)) {
-      for (std::size_t j = count; j < block_size * sizeof(std::uint32_t); ++j) {
+    const auto count = ReadFull(input, buffer, block_ssize_bytes);
+    if (count != block_size_bytes) {
+      for (std::size_t j = count; j < block_size_bytes; ++j) {
         buffer[j] = 0;
       }
       block.resize(
@@ -71,6 +58,14 @@ auto Hash(std::istream& input, std::uint32_t block_size) -> std::uint32_t {
   }
 
   return hash;
+}
+
+auto Hash(const Path& path, std::size_t block_size) -> HashCode {
+  std::ifstream file(path, std::ios::binary);
+  if (!file.is_open()) {
+    throw std::runtime_error("failed to open file '" + path.string() + "'");
+  }
+  return Hash(file, block_size);
 }
 
 } // namespace filehash::smart

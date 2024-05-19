@@ -11,7 +11,8 @@ Checks: '*,\
     -fuchsia-trailing-return,\
     -fuchsia-default-arguments-calls,\
     -cppcoreguidelines-avoid-do-while,\
-    -hicpp-avoid-c-arrays'
+    -hicpp-avoid-c-arrays,
+    -concurrency-mt-unsafe'
     
 WarningsAsErrors: '*'
 HeaderFilterRegex: '^(?!catch2\/.*\.hpp)'

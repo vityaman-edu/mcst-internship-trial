@@ -1,14 +1,11 @@
 #pragma once
 
 #include <cstdint>
+#include <filesystem>
 
 namespace filehash {
 
-constexpr std::size_t BlockSizeElements = 0x100000;
-
-constexpr std::size_t BlockSizeBytes
-    = BlockSizeElements * sizeof(std::uint32_t);
-
 using HashCode = std::uint32_t;
+using Path = std::filesystem::path;
 
 } // namespace filehash

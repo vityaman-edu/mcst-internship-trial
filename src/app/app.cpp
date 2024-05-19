@@ -1,11 +1,12 @@
 #include "app.hpp"
+#include "combine.hpp"
 #include "silly.hpp"
+#include "smart.hpp"
 
+#include <cstddef>
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
-#include <iterator>
-#include <map>
 #include <ostream>
 #include <stdexcept>
 #include <vector>
@@ -27,27 +28,62 @@ auto ParseArgs(int argc, char** argv) -> std::vector<std::string> {
 }
 
 auto AppConfig::Parse(int argc, char** argv) -> AppConfig {
-  auto files = ParseArgs(argc, argv);
-  files.erase(std::begin(files));
+  constexpr auto DEFAULT_METHOD = AppConfig::Method::SILLY;
+  constexpr auto DEFAULT_POLICY = AppConfig::ExecutionPolicy::CONCURRENT;
+  constexpr auto DEFAULT_BLOCK_SIZE = 0x100000;
 
-  if (files.empty()) {
+  auto args = ParseArgs(argc, argv);
+
+  std::vector<Path> paths;
+  paths.reserve(args.size() - 1);
+  for (std::size_t i = 1; i < args.size(); ++i) {
+    paths.emplace_back(args[i]);
+  }
+
+  if (paths.empty()) {
     throw std::invalid_argument("expected at least one filepath");
   }
 
   return {
-      .method = AppConfig::Method::SILLY,
-      .files = files,
+      .method = DEFAULT_METHOD,
+      .policy = DEFAULT_POLICY,
+      .block_size_elements = DEFAULT_BLOCK_SIZE,
+      .paths = paths,
   };
 }
 
 auto FileHash(const AppConfig& config) -> HashCode {
   switch (config.method) {
-  case AppConfig::Method::SILLY:
-    return filehash::silly::HashPar(config.files);
-  case AppConfig::Method::SMART:
-    throw std::invalid_argument("not implemented");
-  }
-  throw std::runtime_error("unexpected method");
+  case AppConfig::Method::SILLY: {
+    const auto hash = [&](const auto& path) {
+      return silly::Hash(path, config.block_size_elements);
+    };
+
+    switch (config.policy) {
+    case AppConfig::ExecutionPolicy::SEQUENTIAL:
+      return combine::HashSeq(config.paths, hash);
+    case AppConfig::ExecutionPolicy::CONCURRENT:
+      return combine::HashPar(config.paths, hash);
+    };
+
+  } break;
+
+  case AppConfig::Method::SMART: {
+    const auto hash = [&](const auto& path) {
+      return smart::Hash(path, config.block_size_elements);
+    };
+
+    switch (config.policy) {
+    case AppConfig::ExecutionPolicy::SEQUENTIAL:
+      return combine::HashSeq(config.paths, hash);
+    case AppConfig::ExecutionPolicy::CONCURRENT:
+      return combine::HashPar(config.paths, hash);
+    };
+
+  } break;
+  };
+
+  throw std::runtime_error("unexpected method or execution policy");
 }
 
 auto Main(int argc, char** argv) -> int try {
