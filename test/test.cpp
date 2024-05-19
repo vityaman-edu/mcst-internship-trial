@@ -14,7 +14,6 @@
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <iterator>
 #include <limits>
 #include <ostream>
@@ -160,8 +159,6 @@ TEST_CASE("Block Splitting") { // NOLINT
   };
 
   for (const auto& config : configs) {
-    WARN("Testing with max size " << config.max_size << '\n');
-
     std::uniform_int_distribution<std::uint32_t> block_size_dist{1, 1024};
 
     for (std::size_t i = 0; i < rounds; ++i) {
@@ -186,7 +183,6 @@ TEST_CASE("Block Splitting") { // NOLINT
 TEST_CASE("Application") { // NOLINT
   constexpr std::size_t seed = 1'232'142'132;
   constexpr std::size_t rounds = 64;
-  constexpr std::size_t batch = 4;
   constexpr auto prefix = "/tmp/test";
 
   std::default_random_engine random{seed}; // NOLINT
@@ -201,10 +197,6 @@ TEST_CASE("Application") { // NOLINT
   std::uniform_int_distribution<std::uint32_t> files_count_dist{1, 12};
 
   for (std::size_t i = 0; i < rounds; ++i) {
-    if (i % batch == 0) {
-      std::cout << "Testing application " << i << "..." << '\n';
-    }
-
     const auto block_size = block_size_dist(random);
     const auto files_count = files_count_dist(random);
 
@@ -265,12 +257,6 @@ TEST_CASE("Large file") { // NOLINT
   };
 
   for (const auto& config : configs) {
-    WARN(
-        "Testing with "
-        << "zero frequency " << config.zero_frequency //
-        << ",  max size " << config.max_size << '\n'
-    );
-
     for (std::size_t i = 0; i < rounds; ++i) {
       const auto content = GenerateFileContent(random, config);
       Write(content, filepath);
