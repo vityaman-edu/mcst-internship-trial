@@ -38,3 +38,5 @@ compile_commands.json
 # VSCode
 .cache/
 .vscode/
+
+*.generated.txt
