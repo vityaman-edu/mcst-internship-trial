@@ -1,4 +1,5 @@
 #include "smart.hpp"
+#include "app/math.hpp"
 #include "core.hpp"
 #include "process.hpp"
 
@@ -40,14 +41,10 @@ auto Hash(std::istream& input, std::size_t block_size) -> HashCode {
   while (!input.eof()) {
     auto* buffer = reinterpret_cast<char*>(block.data()); // NOLINT
     const auto count = ReadFull(input, buffer, block_ssize_bytes);
-    if (count != block_size_bytes) {
-      for (std::size_t j = count; j < block_size_bytes; ++j) {
-        buffer[j] = 0;
-      }
-      block.resize(
-          count / sizeof(std::uint32_t)
-          + (count % sizeof(std::uint32_t) == 0 ? 0 : 1)
-      );
+
+    block.resize(DivCeil(count, sizeof(std::uint32_t)));
+    for (std::size_t j = count; j < block.size() * sizeof(std::uint32_t); ++j) {
+      buffer[j] = 0;
     }
 
     if (!input.eof() && (input.bad() || input.fail())) {

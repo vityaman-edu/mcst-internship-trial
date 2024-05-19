@@ -128,6 +128,15 @@ TEST_CASE("Data Processor Property") {
   REQUIRE(hash_whole != hash_chunked);
 }
 
+TEST_CASE("DivCeil") {
+  REQUIRE(DivCeil(0, 4) == 0);
+  REQUIRE(DivCeil(1, 4) == 1);
+  REQUIRE(DivCeil(2, 4) == 1);
+  REQUIRE(DivCeil(4, 4) == 1);
+  REQUIRE(DivCeil(5, 4) == 2);
+  REQUIRE(DivCeil(8, 4) == 2);
+}
+
 TEST_CASE("Block Splitting") {
   constexpr std::size_t seed = 1'232'142'132;
   constexpr std::size_t rounds = 250;
