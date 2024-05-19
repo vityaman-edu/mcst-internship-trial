@@ -3,9 +3,7 @@
 #include "app/core.hpp"
 #include "app/defer.hpp"
 
-#include <array>
 #include <cstring>
-#include <thread>
 #include <vector>
 
 #include <fcntl.h>
@@ -19,7 +17,14 @@ namespace filehash::combine {
 
 using Paths = std::vector<Path>;
 
-auto HashCombine(const std::vector<HashCode>& hashes) -> HashCode;
+template <class Iter>
+auto HashCombine(Iter begin, Iter end) -> HashCode {
+  HashCode combined = 0;
+  for (auto it = begin; it != end; ++it) {
+    combined ^= *it;
+  }
+  return combined;
+}
 
 template <class UnaryHash>
 auto HashSeq(const Paths& files, UnaryHash hash) -> HashCode {
@@ -28,20 +33,13 @@ auto HashSeq(const Paths& files, UnaryHash hash) -> HashCode {
   for (const auto& file : files) {
     hashes.push_back(hash(file));
   }
-  return HashCombine(hashes);
+  return HashCombine(std::begin(hashes), std::end(hashes));
 }
 
 template <class UnaryHash>
 auto HashPar(const Paths& files, UnaryHash hash) -> HashCode {
   // No memory fences used as I believe that writes must be
   // flushed somewhere in kernel at process exit.
-
-  constexpr std::size_t CacheLineSize = 128;
-
-  struct Result {
-    HashCode hash;
-    std::array<std::byte, CacheLineSize - sizeof(HashCode)> padding;
-  };
 
   if (files.empty()) {
     return 0;
@@ -51,9 +49,9 @@ auto HashPar(const Paths& files, UnaryHash hash) -> HashCode {
     return hash(files[0]);
   }
 
-  const auto shared_memory_size_bytes = sizeof(Result) * files.size();
+  const auto shared_memory_size_bytes = sizeof(HashCode) * files.size();
 
-  auto* results = static_cast<Result*>(mmap(
+  auto* hashes = static_cast<HashCode*>(mmap(
       /* addr   = */ nullptr,
       /* length = */ shared_memory_size_bytes,
       /* prot   = */ PROT_READ | PROT_WRITE,
@@ -62,26 +60,24 @@ auto HashPar(const Paths& files, UnaryHash hash) -> HashCode {
       /* offset = */ 0
   ));
 
-  if (results == MAP_FAILED) {
+  if (hashes == MAP_FAILED) {
     throw std::runtime_error(
         std::string("failed to map shared memory ") + strerror(errno)
     );
   }
 
   Defer unmap([&] {
-    munmap(results, shared_memory_size_bytes);
-    results = nullptr;
+    munmap(hashes, shared_memory_size_bytes);
+    hashes = nullptr;
   });
 
   for (std::size_t i = 0; i < files.size(); ++i) {
-    results[i].hash = 0; // NOLINT
+    hashes[i] = 0;
   }
 
   {
-    const auto parallelism = std::thread::hardware_concurrency();
-
     std::vector<pid_t> children;
-    children.reserve(parallelism);
+    children.reserve(files.size());
 
     Defer wait_chidren([&] {
       for (const auto child : children) {
@@ -90,7 +86,7 @@ auto HashPar(const Paths& files, UnaryHash hash) -> HashCode {
       }
     });
 
-    for (std::size_t i = 0; i < parallelism && i < files.size(); ++i) {
+    for (std::size_t i = 0; i < files.size(); ++i) {
       const pid_t pid = fork();
 
       if (pid == -1) {
@@ -102,18 +98,12 @@ auto HashPar(const Paths& files, UnaryHash hash) -> HashCode {
         continue;
       }
 
-      for (std::size_t j = i; j < files.size(); j += parallelism) {
-        results[j].hash = hash(files[j]);
-      }
+      hashes[i] = hash(files[i]);
       exit(0);
     }
   }
 
-  std::vector<HashCode> hashes(files.size());
-  for (std::size_t i = 0; i < files.size(); ++i) {
-    hashes[i] = results[i].hash;
-  }
-  return HashCombine(hashes);
+  return HashCombine(hashes, hashes + files.size());
 }
 
 } // namespace filehash::combine
