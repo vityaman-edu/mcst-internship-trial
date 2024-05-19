@@ -63,11 +63,7 @@ auto Hash(const Path& path, std::size_t block_size) -> HashCode {
       break;
     }
 
-    block.resize(DivCeil(count, sizeof(std::uint32_t)));
-    for (std::size_t j = count; j < block.size() * sizeof(std::uint32_t); ++j) {
-      buffer[j] = 0;
-    }
-
+    block.resize(count / sizeof(std::uint32_t));
     hash = processor.process_block(block);
   }
 

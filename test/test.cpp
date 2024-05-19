@@ -58,10 +58,13 @@ auto GenerateFileContent(Random& random, const FileContentConfig& config)
 
 auto ToBlock(const std::string& content) {
   std::vector<std::uint32_t> block;
-  block.resize(DivCeil(content.size(), sizeof(std::uint32_t)));
+  block.resize(content.size() / sizeof(std::uint32_t));
+
+  const auto effective_bytes
+      = content.size() / sizeof(std::uint32_t) * sizeof(std::uint32_t);
 
   char* data = reinterpret_cast<char*>(block.data()); // NOLINT
-  for (std::size_t i = 0; i < content.size(); ++i) {
+  for (std::size_t i = 0; i < effective_bytes; ++i) {
     data[i] = content[i]; // NOLINT
   }
 
