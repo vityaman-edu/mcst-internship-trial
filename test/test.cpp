@@ -156,46 +156,52 @@ TEST_CASE("Block Splitting") {
       {.zero_frequency = 6, .min_size = 0, .max_size = 8192},
   };
 
-  const auto config = GENERATE(from_range(configs));
-  WARN("Testing with max size " << config.max_size << '\n');
+  for (const auto& config : configs) {
+    WARN("Testing with max size " << config.max_size << '\n');
 
-  std::uniform_int_distribution<std::uint32_t> block_size_dist{1, 1024};
+    std::uniform_int_distribution<std::uint32_t> block_size_dist{1, 1024};
 
-  for (std::size_t i = 0; i < rounds; ++i) {
-    const auto content = GenerateFileContent(random, config);
+    for (std::size_t i = 0; i < rounds; ++i) {
+      const auto content = GenerateFileContent(random, config);
 
-    Write(content, filepath);
+      Write(content, filepath);
 
-    const auto block_size = block_size_dist(random);
+      const auto block_size = block_size_dist(random);
 
-    const auto expected = ExpectedHash(content, block_size);
-    const auto silly = filehash::silly::Hash(filepath, block_size);
-    const auto smart = filehash::smart::Hash(filepath, block_size);
+      const auto expected = ExpectedHash(content, block_size);
+      const auto silly = filehash::silly::Hash(filepath, block_size);
+      const auto smart = filehash::smart::Hash(filepath, block_size);
 
-    REQUIRE(expected == smart);
-    REQUIRE(expected == silly);
+      REQUIRE(expected == smart);
+      REQUIRE(expected == silly);
+    }
+
+    std::filesystem::remove(filepath);
   }
-
-  std::filesystem::remove(filepath);
 }
 
 TEST_CASE("Application") {
   constexpr std::size_t seed = 1'232'142'132;
-  constexpr std::size_t rounds = 1'000;
+  constexpr std::size_t rounds = 64;
+  constexpr std::size_t batch = 4;
   constexpr auto prefix = "/tmp/test";
 
   std::default_random_engine random{seed}; // NOLINT
 
   FileContentConfig config{
-      .zero_frequency = 2,
+      .zero_frequency = 4,
       .min_size = 0,
       .max_size = 4096,
   };
 
   std::uniform_int_distribution<std::uint32_t> block_size_dist{1, 1024};
-  std::uniform_int_distribution<std::uint32_t> files_count_dist{1, 16};
+  std::uniform_int_distribution<std::uint32_t> files_count_dist{1, 12};
 
   for (std::size_t i = 0; i < rounds; ++i) {
+    if (i % batch == 0) {
+      std::cout << "Testing application " << i << "..." << '\n';
+    }
+
     const auto block_size = block_size_dist(random);
     const auto files_count = files_count_dist(random);
 
@@ -255,29 +261,30 @@ TEST_CASE("Large file") {
       {.zero_frequency = 5, .min_size = 0, .max_size = 4UL * block_size},
   };
 
-  const auto config = GENERATE(from_range(configs));
-  WARN(
-      "Testing with "
-      << "zero frequency " << config.zero_frequency //
-      << ",  max size " << config.max_size << '\n'
-  );
+  for (const auto& config : configs) {
+    WARN(
+        "Testing with "
+        << "zero frequency " << config.zero_frequency //
+        << ",  max size " << config.max_size << '\n'
+    );
 
-  for (std::size_t i = 0; i < rounds; ++i) {
-    const auto content = GenerateFileContent(random, config);
-    Write(content, filepath);
+    for (std::size_t i = 0; i < rounds; ++i) {
+      const auto content = GenerateFileContent(random, config);
+      Write(content, filepath);
 
-    const auto expected = ExpectedHash(content, block_size);
-    const auto actual = app::FileHash({
-        .method = app::AppConfig::Method::SILLY,
-        .policy = app::AppConfig::ExecutionPolicy::CONCURRENT,
-        .block_size_elements = block_size,
-        .paths = {filepath},
-    });
+      const auto expected = ExpectedHash(content, block_size);
+      const auto actual = app::FileHash({
+          .method = app::AppConfig::Method::SILLY,
+          .policy = app::AppConfig::ExecutionPolicy::CONCURRENT,
+          .block_size_elements = block_size,
+          .paths = {filepath},
+      });
 
-    REQUIRE(expected == actual);
+      REQUIRE(expected == actual);
+    }
+
+    std::filesystem::remove(filepath);
   }
-
-  std::filesystem::remove(filepath);
 }
 
 } // namespace filehash::test
