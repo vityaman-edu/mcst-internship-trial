@@ -1,7 +1,7 @@
-#include "smart.hpp"
+#include "app/smart.hpp"
+#include "app/core.hpp"
 #include "app/math.hpp"
-#include "core.hpp"
-#include "process.hpp"
+#include "app/process.hpp"
 
 #include <cstddef>
 #include <cstdint>

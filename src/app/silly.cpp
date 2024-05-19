@@ -1,8 +1,8 @@
-#include "silly.hpp"
+#include "app/silly.hpp"
+#include "app/core.hpp"
+#include "app/defer.hpp"
 #include "app/math.hpp"
-#include "core.hpp"
-#include "defer.hpp"
-#include "process.hpp"
+#include "app/process.hpp"
 
 #include <cstdint>
 #include <fcntl.h>

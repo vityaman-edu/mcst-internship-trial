@@ -1,7 +1,7 @@
-#include "app.hpp"
-#include "combine.hpp"
-#include "silly.hpp"
-#include "smart.hpp"
+#include "app/app.hpp"
+#include "app/combine.hpp"
+#include "app/silly.hpp"
+#include "app/smart.hpp"
 
 #include <cstddef>
 #include <cstdint>

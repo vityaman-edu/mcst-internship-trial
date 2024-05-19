@@ -145,15 +145,15 @@ TEST_CASE("Block Splitting") {
   std::default_random_engine random{seed}; // NOLINT
 
   static const std::vector<FileContentConfig> configs = {
-      {.zero_frequency = 2, .min_size = 0, .max_size = 0     },
-      {.zero_frequency = 2, .min_size = 1, .max_size = 1     },
-      {.zero_frequency = 2, .min_size = 2, .max_size = 2     },
-      {.zero_frequency = 2, .min_size = 3, .max_size = 3     },
-      {.zero_frequency = 2, .min_size = 4, .max_size = 4     },
-      {.zero_frequency = 2, .min_size = 5, .max_size = 5     },
-      {.zero_frequency = 2, .min_size = 0, .max_size = 2048  },
-      {.zero_frequency = 2, .min_size = 0, .max_size = 4096  },
-      {.zero_frequency = 4, .min_size = 0, .max_size = 10'000},
+      {.zero_frequency = 2, .min_size = 0, .max_size = 0   },
+      {.zero_frequency = 2, .min_size = 1, .max_size = 1   },
+      {.zero_frequency = 2, .min_size = 2, .max_size = 2   },
+      {.zero_frequency = 2, .min_size = 3, .max_size = 3   },
+      {.zero_frequency = 2, .min_size = 4, .max_size = 4   },
+      {.zero_frequency = 2, .min_size = 5, .max_size = 5   },
+      {.zero_frequency = 2, .min_size = 0, .max_size = 2048},
+      {.zero_frequency = 2, .min_size = 0, .max_size = 4096},
+      {.zero_frequency = 6, .min_size = 0, .max_size = 8192},
   };
 
   const auto config = GENERATE(from_range(configs));
