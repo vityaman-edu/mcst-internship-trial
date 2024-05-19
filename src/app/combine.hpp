@@ -4,11 +4,11 @@
 #include "app/defer.hpp"
 
 #include <cstring>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
-#include <fcntl.h>
 #include <sys/mman.h>
-#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -62,7 +62,7 @@ auto HashPar(const Paths& files, UnaryHash hash) -> HashCode {
 
   if (hashes == MAP_FAILED) {
     throw std::runtime_error(
-        std::string("failed to map shared memory ") + strerror(errno)
+        std::string("failed to map shared memory ") + strerror(errno) // NOLINT
     );
   }
 
@@ -98,8 +98,8 @@ auto HashPar(const Paths& files, UnaryHash hash) -> HashCode {
         continue;
       }
 
-      hashes[i] = hash(files[i]);
-      exit(0);
+      hashes[i] = hash(files[i]); // NOLINT
+      exit(0);                    // NOLINT
     }
   }
 

@@ -1,14 +1,17 @@
 #include "app/app.hpp"
 #include "app/combine.hpp"
+#include "app/core.hpp"
 #include "app/silly.hpp"
 #include "app/smart.hpp"
 
 #include <cstddef>
 #include <cstdint>
+#include <exception>
 #include <iomanip>
 #include <iostream>
 #include <ostream>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace filehash::app {

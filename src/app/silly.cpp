@@ -3,15 +3,12 @@
 #include "app/defer.hpp"
 #include "app/process.hpp"
 
-#include <cstdint>
 #include <fcntl.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <unistd.h>
 
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <stdexcept>
@@ -45,7 +42,7 @@ auto Hash(const Path& path, std::size_t block_size) -> HashCode {
     throw std::runtime_error("failed to open file '" + path.string() + "'");
   }
 
-  Defer defer([&] { close(file); });
+  const Defer defer([&] { close(file); });
 
   HashCode hash = 0;
   data_processor_t processor;

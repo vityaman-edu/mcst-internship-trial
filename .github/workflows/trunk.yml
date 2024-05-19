@@ -56,7 +56,7 @@ jobs:
         run: |
           clang-tidy \
             -p ./build/compile_commands.json \
-            src/*.cpp test/*.cpp
+            $(find src test \( -name "*.hpp" -o -name "*.cpp" \))
 
       - name: Test Samples
         working-directory: ${{github.workspace}}
