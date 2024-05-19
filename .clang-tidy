@@ -12,9 +12,9 @@ Checks: '*,\
     -fuchsia-trailing-return,\
     -fuchsia-default-arguments-calls,\
     -cppcoreguidelines-avoid-do-while,\
-    -hicpp-avoid-c-arrays,
-    -concurrency-mt-unsafe'
-    
+    -hicpp-avoid-c-arrays,\
+    -cppcoreguidelines-avoid-magic-numbers,\
+    -readability-magic-numbers'
 WarningsAsErrors: '*'
 HeaderFilterRegex: '^(?!catch2\/.*\.hpp)'
 AnalyzeTemporaryDtors: false

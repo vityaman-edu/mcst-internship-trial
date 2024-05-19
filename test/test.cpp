@@ -1,14 +1,13 @@
 #include "app/app.hpp"
+#include "app/core.hpp"
 #include "app/defer.hpp"
 #include "app/math.hpp"
 #include "app/process.hpp"
 #include "app/silly.hpp"
 #include "app/smart.hpp"
-#include "catch2/catch_message.hpp"
-#include "catch2/generators/catch_generators_range.hpp"
 
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/generators/catch_generators_all.hpp>
 
 #include <algorithm>
 #include <cstddef>
@@ -16,10 +15,12 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <limits>
 #include <ostream>
 #include <random>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace filehash::test {
@@ -63,7 +64,7 @@ auto ToBlock(const std::string& content) {
 
   char* data = reinterpret_cast<char*>(block.data()); // NOLINT
   for (std::size_t i = 0; i < content.size(); ++i) {
-    data[i] = content[i];
+    data[i] = content[i]; // NOLINT
   }
 
   return block;
@@ -109,26 +110,28 @@ auto GenerateInputFiles(
   return paths;
 }
 
-TEST_CASE("Data Processor Property") {
-  std::uint32_t hash_whole = 0;
-  {
+TEST_CASE("Data Processor Property") { // NOLINT
+  const auto hash_whole = [] {
     data_processor_t hasher;
-    hash_whole = hasher.process_block({1, 2, 3, 4, 5, 0, 6, 7, 8, 9});
-  }
+    std::uint32_t hash = 0;
+    hash = hasher.process_block({1, 2, 3, 4, 5, 0, 6, 7, 8, 9});
+    return hash;
+  }();
 
-  std::uint32_t hash_chunked = 0;
-  {
+  const auto hash_chunked = [] {
     data_processor_t hasher;
-    hash_chunked = hasher.process_block({1, 2, 3});
-    hash_chunked = hasher.process_block({4});
-    hash_chunked = hasher.process_block({5, 0, 6});
-    hash_chunked = hasher.process_block({7, 8, 9});
-  };
+    std::uint32_t hash = 0;
+    hash = hasher.process_block({1, 2, 3});
+    hash = hasher.process_block({4});
+    hash = hasher.process_block({5, 0, 6});
+    hash = hasher.process_block({7, 8, 9});
+    return hash;
+  }();
 
   REQUIRE(hash_whole != hash_chunked);
 }
 
-TEST_CASE("DivCeil") {
+TEST_CASE("DivCeil") { // NOLINT
   REQUIRE(DivCeil(0, 4) == 0);
   REQUIRE(DivCeil(1, 4) == 1);
   REQUIRE(DivCeil(2, 4) == 1);
@@ -137,7 +140,7 @@ TEST_CASE("DivCeil") {
   REQUIRE(DivCeil(8, 4) == 2);
 }
 
-TEST_CASE("Block Splitting") {
+TEST_CASE("Block Splitting") { // NOLINT
   constexpr std::size_t seed = 1'232'142'132;
   constexpr std::size_t rounds = 250;
   constexpr auto filepath = "/tmp/test";
@@ -180,7 +183,7 @@ TEST_CASE("Block Splitting") {
   }
 }
 
-TEST_CASE("Application") {
+TEST_CASE("Application") { // NOLINT
   constexpr std::size_t seed = 1'232'142'132;
   constexpr std::size_t rounds = 64;
   constexpr std::size_t batch = 4;
@@ -188,7 +191,7 @@ TEST_CASE("Application") {
 
   std::default_random_engine random{seed}; // NOLINT
 
-  FileContentConfig config{
+  const FileContentConfig config{
       .zero_frequency = 4,
       .min_size = 0,
       .max_size = 4096,
@@ -206,7 +209,7 @@ TEST_CASE("Application") {
     const auto files_count = files_count_dist(random);
 
     const auto paths = GenerateInputFiles(random, config, files_count, prefix);
-    Defer remove([&] {
+    const Defer remove([&] {
       for (const auto& path : paths) {
         std::filesystem::remove(path);
       }
@@ -246,7 +249,7 @@ TEST_CASE("Application") {
   }
 }
 
-TEST_CASE("Large file") {
+TEST_CASE("Large file") { // NOLINT
   constexpr std::size_t seed = 1'232'142'132;
   constexpr std::size_t rounds = 10;
   constexpr auto filepath = "/tmp/test";

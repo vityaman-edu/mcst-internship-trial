@@ -23,7 +23,6 @@ Diagnostics:
         cppcoreguidelines-pro-bounds-pointer-arithmetic,
         cppcoreguidelines-avoid-magic-numbers,
         hicpp-avoid-c-arrays,
-        concurrency-mt-unsafe,
         readability-magic-numbers,
       ]
 
