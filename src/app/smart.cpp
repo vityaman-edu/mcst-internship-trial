@@ -1,6 +1,5 @@
 #include "app/smart.hpp"
 #include "app/core.hpp"
-#include "app/math.hpp"
 #include "app/process.hpp"
 
 #include <cstddef>
