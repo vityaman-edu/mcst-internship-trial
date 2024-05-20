@@ -6,14 +6,25 @@ Diagnostics:
   UnusedIncludes: Strict
   ClangTidy:
     Add: "*"
-    Remove: [
-      llvmlibc-callee-namespace,
-      llvmlibc-implementation-in-namespace,
-      llvmlibc-restrict-system-libc-headers,
-      misc-no-recursion,
-      fuchsia-trailing-return,
-      altera-unroll-loops,
-    ]
+    Remove:
+      [
+        llvmlibc-callee-namespace,
+        llvmlibc-implementation-in-namespace,
+        llvmlibc-restrict-system-libc-headers,
+        llvmlibc-inline-function-decl,
+        misc-no-recursion,
+        misc-use-anonymous-namespace,
+        fuchsia-trailing-return,
+        fuchsia-default-arguments-calls,
+        altera-unroll-loops,
+        altera-id-dependent-backward-branch,
+        altera-struct-pack-align,
+        cppcoreguidelines-avoid-do-while,
+        cppcoreguidelines-pro-bounds-pointer-arithmetic,
+        cppcoreguidelines-avoid-magic-numbers,
+        hicpp-avoid-c-arrays,
+        readability-magic-numbers,
+      ]
 
 InlayHints:
   Designators: No

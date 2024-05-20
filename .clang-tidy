@@ -3,9 +3,19 @@ Checks: '*,\
     -llvmlibc-callee-namespace,\
     -llvmlibc-restrict-system-libc-headers,\
     -llvmlibc-implementation-in-namespace,\
+    -llvmlibc-inline-function-decl,\
     -altera-unroll-loops,\
+    -altera-id-dependent-backward-branch,\
+    -altera-struct-pack-align,\
     -misc-no-recursion,\
-    -fuchsia-trailing-return'
+    -misc-use-anonymous-namespace,\
+    -fuchsia-trailing-return,\
+    -fuchsia-default-arguments-calls,\
+    -cppcoreguidelines-avoid-do-while,\
+    -hicpp-avoid-c-arrays,\
+    -cppcoreguidelines-avoid-magic-numbers,\
+    -cppcoreguidelines-pro-bounds-pointer-arithmetic,\
+    -readability-magic-numbers'
 WarningsAsErrors: '*'
 HeaderFilterRegex: '^(?!catch2\/.*\.hpp)'
 AnalyzeTemporaryDtors: false

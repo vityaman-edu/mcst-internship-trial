@@ -8,6 +8,9 @@ on:
 
 jobs:
   build:
+    strategy:
+      matrix:
+        cmake_build_type: [Asan, Release]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -15,20 +18,48 @@ jobs:
       - name: Setup LLVM toolchain
         uses: KyleMayes/install-llvm-action@v2
         with:
-          version: "16.0"
+          version: "17"
+
+      - name: Configure
+        working-directory: ${{github.workspace}}
+        run: |
+          export CXX="/usr/bin/clang++"
+          mkdir build
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} ..
 
       - name: Build
         working-directory: ${{github.workspace}}
-        run: cmake -S . -B build && cmake --build build
+        run: |
+          cd build 
+          make filehash
+          make filehash-test
 
       - name: Unit Test
         working-directory: ${{github.workspace}}
-        run: ./build/filehash-test
+        run: |
+          cd build
+          ./filehash-test
 
       - name: Check formatting
         working-directory: ${{github.workspace}}
-        run: clang-format --dry-run --Werror src/* test/*
+        run: |
+          find src test \( -name "*.hpp" -o -name "*.cpp" \) > build/sources.txt
+          clang-format \
+            --Werror \
+            --dry-run \
+            --style=file \
+            --files=build/sources.txt
 
       - name: Check codestyle
         working-directory: ${{github.workspace}}
-        run: clang-tidy -p ./build/compile_commands.json test/*.cpp
+        run: |
+          clang-tidy \
+            -p ./build/compile_commands.json \
+            $(find src test \( -name "*.hpp" -o -name "*.cpp" \))
+
+      - name: Test Samples
+        working-directory: ${{github.workspace}}
+        run: |
+          sh ./script/test/random.sh
+          sh ./script/test/validate.sh
